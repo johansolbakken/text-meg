@@ -5,7 +5,7 @@ export type Letter = {
 }
 
 export class Writer {
-    
+
     letters: Letter[] = []
     cursor: number = 0
 
@@ -22,7 +22,7 @@ export class Writer {
                 ...this.letters.slice(this.cursor, this.letters.length)
             ]
         }
-       
+
         this.cursor += 1
         this.letters.forEach((letter, index) => letter.index = index)
     }
@@ -39,15 +39,20 @@ export class Writer {
 
     cursorPos = () => this.cursor
 
-    deleteLetter() {
-        if (this.cursor > 0) 
-        {
+    deleteLetter = () => {
+        if (this.cursor > 0) {
             this.letters = [
-                ...this.letters.slice(0, this.cursor-1),
-                ...this.letters.slice(Math.min(this.cursor, this.letters.length), this.letters.length)   
+                ...this.letters.slice(0, this.cursor - 1),
+                ...this.letters.slice(Math.min(this.cursor, this.letters.length), this.letters.length)
             ]
             this.cursor -= 1
         }
+    }
+
+    setCursor = (index: number) => {
+        this.cursor = index
+        if (this.cursor < 0) this.cursor = 0
+        if (this.cursor >= this.letters.length) this.cursor = this.letters.length
     }
 }
 

@@ -1,15 +1,41 @@
-import { useState, KeyboardEvent, useEffect } from "react";
-import { Writer } from "./Letter";
+import { useState, KeyboardEvent, useEffect, MouseEvent } from "react";
+import { Letter, Writer } from "./Letter";
 
-const Text = ({ text }: { text: string }) => {
+enum TextOnClickSide {
+  Right,
+  Left,
+}
+
+type TextProps = {
+  letter: Letter;
+  onSetCursor: (index: number) => void;
+};
+
+const Text = (props: TextProps) => {
   return (
     <div
       style={{
         color: "black",
         minWidth: 6,
+        maxHeight: 10,
+      }}
+      onClick={(e: MouseEvent<HTMLDivElement>) => {
+        const { offsetX, offsetY } = e.nativeEvent;
+        const { clientWidth, clientHeight } = e.target as any as {
+          clientWidth: number;
+          clientHeight: number;
+        };
+
+        const middle = clientWidth / 2;
+        const right = offsetX > middle;
+        if (right) {
+          props.onSetCursor(props.letter.index + 1);
+        } else {
+          props.onSetCursor(props.letter.index);
+        }
       }}
     >
-      {text}
+      {props.letter.text}
     </div>
   );
 };
@@ -50,18 +76,22 @@ export const TextField = () => {
     if (e.key == "ArrowLeft") {
       writer.cursorLeft();
     }
-    if (e.key == "Backspace")
-    {
-        writer.deleteLetter()
+    if (e.key == "Backspace") {
+      writer.deleteLetter();
     }
-    
+
     setChange(true);
   };
+
+  const handleSetCursor = (index:number) => {
+    writer.setCursor(index)
+    setChange(true)
+  }
 
   useEffect(() => {
     if (change) {
       const listOfText = writer.letters.map((letter) => (
-        <Text text={letter.text} key={letter.index} />
+        <Text letter={letter} onSetCursor={handleSetCursor} key={letter.index} />
       ));
       const cursor = writer.cursorPos();
       const listOfText2 = [
