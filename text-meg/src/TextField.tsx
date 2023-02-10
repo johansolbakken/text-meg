@@ -1,11 +1,12 @@
 import { useState, KeyboardEvent, useEffect } from "react";
+import { Writer } from "./Letter";
 
 const Text = ({ text }: { text: string }) => {
   return (
     <div
       style={{
         color: "black",
-        minWidth: 6
+        minWidth: 6,
       }}
     >
       {text}
@@ -26,35 +27,53 @@ const Cursor = () => {
 };
 
 export const TextField = () => {
-  const [text, setText] = useState("");
-  const [cursor, setCursor] = useState(0);
+  const [writer, setWriter] = useState(new Writer());
+
   const [textList, setTextList] = useState<React.ReactNode[]>([]);
   const [focus, setFocus] = useState(false);
+  const [change, setChange] = useState(false);
 
   const keyDownHandler = (e: KeyboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.key.length == 1 && e.key.match(/[a-zA-Z0-9]| |.|!|\?|\/|=/)) {
-      setText(text + e.key);
-      setCursor(cursor + 1);
+      writer.addLetter({ text: e.key, index: 0 });
     }
     if (e.key === "Space") {
-      setText(text + " ");
-      setCursor(cursor + 1);
+      writer.addLetter({ text: " ", index: 0 });
     }
+    if (e.key === "Escape") {
+      setFocus(false);
+    }
+    if (e.key == "ArrowRight") {
+      writer.cursorRight();
+    }
+    if (e.key == "ArrowLeft") {
+      writer.cursorLeft();
+    }
+    if (e.key == "Backspace")
+    {
+        writer.deleteLetter()
+    }
+    
+    setChange(true);
   };
 
   useEffect(() => {
-    const listOfText = text
-      .split("")
-      .map((letter, index) => <Text text={letter} key={index} />);
-    const listOfText2 = [
-      ...listOfText.slice(0, cursor),
-      <Cursor key={"Cursor"} />,
-      ...listOfText.slice(cursor, listOfText.length),
-    ];
+    if (change) {
+      const listOfText = writer.letters.map((letter) => (
+        <Text text={letter.text} key={letter.index} />
+      ));
+      const cursor = writer.cursorPos();
+      const listOfText2 = [
+        ...listOfText.slice(0, cursor),
+        <Cursor key={"Cursor"} />,
+        ...listOfText.slice(cursor, listOfText.length),
+      ];
 
-    setTextList(listOfText2);
-  }, [text, cursor]);
+      setTextList(listOfText2);
+      setChange(false);
+    }
+  }, [change]);
 
   return (
     <div
@@ -66,7 +85,7 @@ export const TextField = () => {
         justifyContent: "left",
         flexWrap: "wrap",
       }}
-      tabIndex={1}
+      tabIndex={focus ? 0 : undefined}
       onClick={() => setFocus(true)}
       onKeyDown={keyDownHandler}
     >
